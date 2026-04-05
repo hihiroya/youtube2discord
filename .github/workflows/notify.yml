@@ -28,7 +28,8 @@ jobs:
 
       - name: Run Script
         env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          # 以下のように、用途ごとにプレフィックスを揃えて渡す
+          WEBHOOK_DEFAULT: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: node check_videos.js
 
       - name: Commit and Push if ID updated

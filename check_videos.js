@@ -48,16 +48,34 @@ async function run() {
             for (const video of notifyItems) {
                 console.log(`新着発見: ${channel.name} - ${video.title}`);
 
-                await fetch(DISCORD_WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        content: `**${feed.title}の新着動画が投稿されました！**\n${video.title}\n${video.link}`
-                    })
-                });
+                // 送信先リストを作成（配列がなければデフォルトを使用）
+                const targetCategories = (channel.categories && channel.categories.length > 0)
+                    ? channel.categories
+                    : ["DEFAULT"];
 
-                // 【重要】Discordのスパム判定（Rate Limit）を避けるため1秒待機
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                // 重複を排除してユニークなWebhook URLを抽出
+                const webhookUrls = [...new Set(targetCategories.map(cat => {
+                    const url = process.env[`WEBHOOK_${cat.toUpperCase()}`];
+                    return url || process.env.WEBHOOK_DEFAULT; // 設定がなければデフォルトに
+                }))].filter(url => url); // nullやundefinedを除外
+
+                // 見つかった全てのURLに対して通知を実行
+                for (const url of webhookUrls) {
+                    try {
+                        await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                content: `**${feed.title}の新着動画が投稿されました！**\n${video.title}\n${video.link}`
+                            })
+                        });
+
+                        // 【重要】Discordのスパム判定（Rate Limit）を避けるため1秒待機
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    } catch (err) {
+                        console.error(`通知送信エラー (${url}):`, err);
+                    }
+                }
             }
 
             // 最後に最新のIDで上書き保存
