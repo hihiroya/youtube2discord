@@ -1,0 +1,6 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions" # Actionsの更新をチェック
+    directory: "/"
+    schedule:
+      interval: "weekly" # 週に1回チェック
