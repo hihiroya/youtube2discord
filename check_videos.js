@@ -66,3 +66,9 @@ async function run() {
         } catch (err) {
             console.error(`Error processing ${channel.name}:`, err);
         }
+    }
+    // 全チャンネル処理後にID保存ファイルを更新
+    fs.writeFileSync(DATA_FILE, JSON.stringify(lastIds, null, 2));
+}
+
+run();
